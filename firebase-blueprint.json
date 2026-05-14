@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "EvaluationRecord": {
+      "title": "Evaluation Record",
+      "description": "Performance evaluation of an external provider.",
+      "type": "object",
+      "properties": {
+        "batchId": { "type": "string", "description": "Unique ID for the batch session" },
+        "batchName": { "type": "string", "description": "Display name for the batch" },
+        "supplierName": { "type": "string", "description": "Name of the supplier" },
+        "purchaseOrderNo": { "type": "string", "description": "PO / JO Number" },
+        "address": { "type": "string", "description": "Address of the supplier" },
+        "dateOfEvaluation": { "type": "string", "format": "date", "description": "Date the evaluation was performed" },
+        "ratings": {
+          "type": "object",
+          "properties": {
+            "quality": { "type": "number", "description": "Rating for Quality of Items" },
+            "price": { "type": "number", "description": "Rating for Fairness of Price" },
+            "delivery": { "type": "number", "description": "Rating for Delivery Timeliness" },
+            "completeness": { "type": "number", "description": "Rating for Completeness" },
+            "afterSales": { "type": "number", "description": "Rating for After-Sales Service" }
+          }
+        },
+        "comments": { "type": "string", "description": "Summary comments or suggestions" },
+        "signature": { "type": "string", "description": "Base64 signature image" },
+        "designation": { "type": "string", "description": "Designation of evaluator" },
+        "department": { "type": "string", "description": "Department of evaluator" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation" },
+        "averageScore": { "type": "number", "description": "Calculated average of ratings" },
+        "ratingCategory": { "type": "string", "description": "Excellent, Very Satisfactory, etc." }
+      },
+      "required": ["batchId", "batchName", "supplierName", "purchaseOrderNo", "dateOfEvaluation", "ratings", "designation", "department"]
+    },
+    "AppConfig": {
+      "title": "App Config",
+      "description": "Global application configuration or admin records.",
+      "type": "object",
+      "properties": {
+        "adminEmails": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "firestore": {
+    "/evaluations/{evaluationId}": {
+      "schema": "EvaluationRecord",
+      "description": "Collection of all performance evaluations."
+    },
+    "/configs/globals": {
+      "schema": "AppConfig",
+      "description": "Global configuration document."
+    }
+  }
+}

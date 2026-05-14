@@ -1,0 +1,17 @@
+{
+  "name": "ISU Performance Portal",
+  "short_name": "ISU Portal",
+  "description": "Isabela State University Performance Evaluation System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#006838",
+  "theme_color": "#006838",
+  "icons": [
+    {
+      "src": "isulogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

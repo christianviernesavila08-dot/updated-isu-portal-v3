@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definition
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      // For this app, we'll check if UID is in an admins collection
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Phase 2: Relationship Mapping
+    // Evaluations are created by authenticated staff.
+    // They can be read by anyone in the campus (signed in).
+    // They are immutable.
+
+    match /evaluations/{evaluationId} {
+      allow create: if isSignedIn() && isValidEvaluation(incoming());
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // We might restrict this later if needed
+      allow update: if isAdmin(); // Only admins can correct
+      allow delete: if isAdmin(); // Only admins can delete
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via console
+    }
+
+    match /configs/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Phase 4: Validation Blueprints
+    function isValidEvaluation(data) {
+      return data.keys().hasAll(['supplierName', 'purchaseOrderNo', 'address', 'dateOfEvaluation', 'ratings', 'comments', 'signature', 'designation', 'department', 'createdAt', 'averageScore', 'ratingCategory'])
+        && data.keys().size() == 12
+        && data.supplierName is string && data.supplierName.size() <= 200
+        && data.purchaseOrderNo is string && data.purchaseOrderNo.size() <= 100
+        && data.address is string && data.address.size() <= 300
+        && data.dateOfEvaluation is string && data.dateOfEvaluation.size() == 10
+        && data.ratings is map
+        && data.ratings.quality is number && data.ratings.quality >= 1 && data.ratings.quality <= 5
+        && data.ratings.price is number && data.ratings.price >= 1 && data.ratings.price <= 5
+        && data.ratings.delivery is number && data.ratings.delivery >= 1 && data.ratings.delivery <= 5
+        && data.ratings.completeness is number && data.ratings.completeness >= 1 && data.ratings.completeness <= 5
+        && data.ratings.afterSales is number && data.ratings.afterSales >= 1 && data.ratings.afterSales <= 5
+        && data.comments is string && data.comments.size() <= 2000
+        && data.signature is string && data.signature.size() <= 500000 // Base64 signature limit
+        && data.designation is string && data.designation.size() <= 100
+        && data.department is string && data.department.size() <= 100
+        && data.createdAt == request.time
+        && data.averageScore is number
+        && data.ratingCategory is string;
+    }
+  }
+}
